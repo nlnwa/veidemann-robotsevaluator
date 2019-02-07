@@ -10,3 +10,7 @@ buildNumber.properties
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
+.idea
+/veidemann-robotsevaluator-service/veidemann-robotsevaluator-service.iml
+/veidemann-robotsevaluator.iml
+/veidemann-robotsevaluator-codegen/veidemann-robotsevaluator-codegen.iml
