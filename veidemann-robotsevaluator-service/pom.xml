@@ -71,7 +71,7 @@
             <version>${cache2k-version}</version>
             <scope>runtime</scope>
         </dependency>
-        
+
         <!-- Configuration framework -->
         <dependency>
             <groupId>com.typesafe</groupId>
@@ -86,7 +86,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -107,7 +106,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>appassembler-maven-plugin</artifactId>
-                        <version>2.0.0</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
@@ -138,7 +136,6 @@
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.28.0</version>
                         <executions>
                             <execution>
                                 <id>docker-build</id>

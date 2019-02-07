@@ -10,11 +10,6 @@
     <artifactId>veidemann-robotsevaluator-codegen</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-        <antlr.version>4.7</antlr.version>
-        <antlr4test-maven-plugin.version>1.8</antlr4test-maven-plugin.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.antlr</groupId>
@@ -28,7 +23,6 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>${antlr.version}</version>
                 <configuration>
                     <sourceDirectory>src/main/grammars/</sourceDirectory>
                     <grammars>useragent.g4,robotstxt.g4</grammars>
@@ -47,7 +41,6 @@
             <plugin>
                 <groupId>com.khubla.antlr</groupId>
                 <artifactId>antlr4test-maven-plugin</artifactId>
-                <version>${antlr4test-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>test-useragent</id>
