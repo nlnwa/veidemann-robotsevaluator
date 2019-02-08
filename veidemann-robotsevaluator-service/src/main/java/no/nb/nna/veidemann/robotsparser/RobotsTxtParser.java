@@ -15,48 +15,80 @@
  */
 package no.nb.nna.veidemann.robotsparser;
 
-import java.io.IOException;
-import java.io.Reader;
 import no.nb.nna.veidemann.robots.RobotstxtLexer;
 import no.nb.nna.veidemann.robots.RobotstxtParser;
 import no.nb.nna.veidemann.robots.RobotstxtParserBaseListener;
 import no.nb.nna.veidemann.robotsparser.RobotsTxt.Directive;
 import no.nb.nna.veidemann.robotsparser.RobotsTxt.DirectiveGroup;
 import no.nb.nna.veidemann.robotsparser.RobotsTxt.DirectiveType;
-import no.nb.nna.veidemann.robotsparser.RobotsTxt.NonGroupField;
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Reader;
 
 /**
  *
  */
 public class RobotsTxtParser {
+    private static final Logger LOG = LoggerFactory.getLogger(RobotsTxtParser.class);
 
     public RobotsTxtParser() {
     }
 
-    public RobotsTxt parse(String robotsContent) throws IOException {
-        return parse(CharStreams.fromString(robotsContent));
+    public RobotsTxt parse(String robotsContent, String sourceName) throws IOException {
+        return parse(CharStreams.fromString(robotsContent), sourceName);
     }
 
-    public RobotsTxt parse(Reader robotsReader) throws IOException {
-        return parse(CharStreams.fromReader(robotsReader));
+    public RobotsTxt parse(Reader robotsReader, String sourceName) throws IOException {
+        return parse(CharStreams.fromReader(robotsReader), sourceName);
     }
 
-    public RobotsTxt parse(CharStream robotsStream) throws IOException {
+    public RobotsTxt parse(CharStream robotsStream, String sourceName) throws IOException {
+        RobotsTxt robotsTxt = new RobotsTxt(sourceName);
+        ErrorListener errorListener = new ErrorListener(robotsTxt);
+
         TokenSource tokenSource = new RobotstxtLexer(robotsStream);
+        ((RobotstxtLexer) tokenSource).removeErrorListeners();
+        ((RobotstxtLexer) tokenSource).addErrorListener(errorListener);
         TokenStream tokens = new CommonTokenStream(tokenSource);
+
         RobotstxtParser parser = new RobotstxtParser(tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+
         ParseTree p = parser.robotstxt();
         ParseTreeWalker walker = new ParseTreeWalker();
-        RobotsTxt robotsTxt = new RobotsTxt();
         walker.walk(new RobotsListener(robotsTxt), p);
+
+        if (!robotsTxt.errors.isEmpty()) {
+            LOG.info("Errors found in {}:\n    {}", sourceName, String.join("\n    ", robotsTxt.errors));
+        }
         return robotsTxt;
+    }
+
+    private class ErrorListener extends BaseErrorListener {
+        final RobotsTxt robotsTxt;
+
+        public ErrorListener(RobotsTxt robotsTxt) {
+            this.robotsTxt = robotsTxt;
+        }
+
+        @Override
+        public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
+            String err = String.format("%d:%d: %s", line, charPositionInLine, msg);
+            robotsTxt.errors.add(err);
+        }
     }
 
     private class RobotsListener extends RobotstxtParserBaseListener {
@@ -71,7 +103,9 @@ public class RobotsTxtParser {
 
         @Override
         public void enterStartgroupline(RobotstxtParser.StartgrouplineContext ctx) {
-            currentDirective.userAgents.add(ctx.agentvalue().getText().toLowerCase());
+            if (ctx.agentvalue() != null) {
+                currentDirective.userAgents.add(ctx.agentvalue().getText().toLowerCase());
+            }
         }
 
         @Override
@@ -83,39 +117,54 @@ public class RobotsTxtParser {
 
         @Override
         public void enterUrlnongroupfield(RobotstxtParser.UrlnongroupfieldContext ctx) {
-            robotsTxt.otherFields.add(
-                    new NonGroupField(ctx.urlnongrouptype().getText().toLowerCase(), ctx.urlvalue().getText()));
+            if (ctx.urlnongrouptype() != null) {
+                String name = ctx.urlnongrouptype().getText().toLowerCase();
+                if ("sitemap".equals(name)) {
+                    robotsTxt.sitemaps.add(ctx.urlvalue().getText());
+                } else {
+                    robotsTxt.addOtherField(name, ctx.urlvalue().getText());
+                }
+            }
         }
 
         @Override
         public void enterOthernongroupfield(RobotstxtParser.OthernongroupfieldContext ctx) {
-            robotsTxt.otherFields.add(
-                    new NonGroupField(ctx.othernongrouptype().getText().toLowerCase(), ctx.textvalue().getText()));
+            if (ctx.othernongrouptype() != null && !(ctx.othernongrouptype().getText().isEmpty() && ctx.textvalue().getText().isEmpty())) {
+                robotsTxt.addOtherField(ctx.othernongrouptype().getText().toLowerCase(), ctx.textvalue().getText());
+            }
         }
 
         @Override
         public void enterOthermemberfield(RobotstxtParser.OthermemberfieldContext ctx) {
-            String fieldName = ctx.othermembertype().getText().toLowerCase();
-            switch (fieldName) {
-                case "cache-delay":
-                    currentDirective.cacheDelay = Float.parseFloat(ctx.textvalue().getText());
-                    break;
-                case "crawl-delay":
-                    currentDirective.crawlDelay = Float.parseFloat(ctx.textvalue().getText());
-                    break;
-                default:
-                    currentDirective.otherFields.put(fieldName, ctx.textvalue().getText());
-                    break;
+            if (ctx.othermembertype() != null && ctx.textvalue() != null) {
+                String fieldName = ctx.othermembertype().getText().toLowerCase();
+                try {
+                    switch (fieldName) {
+                        case "cache-delay":
+                            currentDirective.cacheDelay = Float.parseFloat(ctx.textvalue().getText());
+                            break;
+                        case "crawl-delay":
+                            currentDirective.crawlDelay = Float.parseFloat(ctx.textvalue().getText());
+                            break;
+                        default:
+                            currentDirective.addOtherField(fieldName, ctx.textvalue().getText());
+                            break;
+                    }
+                } catch (NumberFormatException e) {
+
+                }
             }
         }
 
         @Override
         public void enterPathmemberfield(RobotstxtParser.PathmemberfieldContext ctx) {
-            if (ctx.pathmembertype().ALLOW() != null) {
-                currentDirective.directives.add(new Directive(DirectiveType.ALLOW, ctx.pathvalue().getText()));
-            }
-            if (ctx.pathmembertype().DISALLOW() != null) {
-                currentDirective.directives.add(new Directive(DirectiveType.DISALLOW, ctx.pathvalue().getText()));
+            if (ctx.pathmembertype() != null && ctx.pathvalue() != null) {
+                if (ctx.pathmembertype().ALLOW() != null) {
+                    currentDirective.addDirective(new Directive(DirectiveType.ALLOW, ctx.pathvalue().getText()));
+                }
+                if (ctx.pathmembertype().DISALLOW() != null) {
+                    currentDirective.addDirective(new Directive(DirectiveType.DISALLOW, ctx.pathvalue().getText()));
+                }
             }
         }
 

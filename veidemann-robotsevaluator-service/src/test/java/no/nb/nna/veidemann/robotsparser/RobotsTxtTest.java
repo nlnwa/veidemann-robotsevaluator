@@ -16,11 +16,10 @@
 
 package no.nb.nna.veidemann.robotsparser;
 
-import no.nb.nna.veidemann.robotsparser.RobotsTxt;
 import org.junit.Test;
 import org.netpreserve.commons.uri.UriConfigs;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
@@ -47,28 +46,28 @@ public class RobotsTxtTest {
         RobotsTxt.DirectiveGroup directiveGroup;
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/p"));
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/p"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
         assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/page"))).isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/folder/"));
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/folder"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/folder/"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/folder"));
         assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/folder/page"))).isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/page"));
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/*.htm"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/page"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/*.htm"));
         assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/page.htm"))).isFalse();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/$"));
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/$"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
         assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/"))).isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/$"));
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/$"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
         assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/page.htm"))).isFalse();
     }
 
@@ -142,40 +141,40 @@ public class RobotsTxtTest {
      */
     @Test
     public void testIsAllowed() {
-        RobotsTxt robots = new RobotsTxt();
+        RobotsTxt robots = new RobotsTxt("test");
 
         // Test that empty robots.txt allows all
-        assertThat(robots.isAllowed("googlebot-news", UriConfigs.WHATWG.buildUri("http://example.com/page"))).isTrue();
+        assertThat(robots.isAllowed("googlebot-news", UriConfigs.WHATWG.buildUri("http://example.com/page")).getIsAllowed()).isTrue();
 
         RobotsTxt.DirectiveGroup directiveGroup;
         directiveGroup = new RobotsTxt.DirectiveGroup();
         directiveGroup.userAgents.add("googlebot-news");
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/p"));
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/p"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
         robots.directives.add(directiveGroup);
-        assertThat(robots.isAllowed("googlebot-news", UriConfigs.WHATWG.buildUri("http://example.com/page"))).isTrue();
+        assertThat(robots.isAllowed("googlebot-news", UriConfigs.WHATWG.buildUri("http://example.com/page")).getIsAllowed()).isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
         directiveGroup.userAgents.add("googlebot");
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/folder/"));
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/folder"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/folder/"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/folder"));
         robots.directives.add(directiveGroup);
         assertThat(robots.isAllowed("Googlebot/2.1 (+http://www.google.com/bot.html)",
-                UriConfigs.WHATWG.buildUri("http://example.com/folder/page"))).isTrue();
-        assertThat(robots.isAllowed("googlebot-news", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")))
+                UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed()).isTrue();
+        assertThat(robots.isAllowed("googlebot-news", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed())
                 .isFalse();
-        assertThat(robots.isAllowed("googlebo", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")))
+        assertThat(robots.isAllowed("googlebo", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed())
                 .isTrue();
-        assertThat(robots.isAllowed("foo", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")))
+        assertThat(robots.isAllowed("foo", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed())
                 .isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
         directiveGroup.userAgents.add("*");
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/page"));
-        directiveGroup.directives.add(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/*.htm"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/page"));
+        directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/*.htm"));
         robots.directives.add(directiveGroup);
-        assertThat(robots.isAllowed("foo", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")))
+        assertThat(robots.isAllowed("foo", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed())
                 .isTrue();
-   }
+    }
 
 }

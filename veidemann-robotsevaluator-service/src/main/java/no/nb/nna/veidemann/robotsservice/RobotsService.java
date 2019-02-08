@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
+import static no.nb.nna.veidemann.robotsparser.RobotsTxt.EMPTY_ALLOWED_REPLY;
+
 /**
  *
  */
@@ -54,28 +56,27 @@ public class RobotsService extends RobotsEvaluatorGrpc.RobotsEvaluatorImplBase {
         try {
             Uri uri = UriConfigs.WHATWG.buildUri(request.getUri());
             int ttlSeconds = request.getPoliteness().getPolitenessConfig().getMinimumRobotsValidityDurationS();
-            boolean allowed = false;
+            IsAllowedReply reply;
 
             switch (request.getPoliteness().getPolitenessConfig().getRobotsPolicy()) {
                 case OBEY_ROBOTS:
-                    allowed = cache.get(uri, ttlSeconds, request.getExecutionId(), request.getJobExecutionId(), request.getCollectionRef().getId())
+                    reply = cache.get(uri, ttlSeconds, request.getExecutionId(), request.getJobExecutionId(), request.getCollectionRef().getId())
                             .isAllowed(request.getUserAgent(), uri);
                     break;
                 case IGNORE_ROBOTS:
-                    allowed = true;
+                    reply = EMPTY_ALLOWED_REPLY;
                     break;
                 case CUSTOM_ROBOTS:
-                    allowed = ROBOTS_TXT_PARSER.parse(request.getPoliteness().getPolitenessConfig().getCustomRobots())
+                    reply = ROBOTS_TXT_PARSER.parse(request.getPoliteness().getPolitenessConfig().getCustomRobots(), "custom")
                             .isAllowed(request.getUserAgent(), uri);
                     break;
                 default:
                     LOG.warn("Robots Policy '{}' is not implemented.", request.getPoliteness()
                             .getPolitenessConfig().getRobotsPolicy());
-                    allowed = true;
+                    reply = EMPTY_ALLOWED_REPLY;
                     break;
             }
 
-            IsAllowedReply reply = IsAllowedReply.newBuilder().setIsAllowed(allowed).build();
             respObserver.onNext(reply);
             respObserver.onCompleted();
         } catch (Exception ex) {

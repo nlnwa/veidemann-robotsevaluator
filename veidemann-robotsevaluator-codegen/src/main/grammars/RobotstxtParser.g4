@@ -18,7 +18,7 @@ entry : ( ( startgroupline+
   | nongroupline
   | commentline) );
 
-startgroupline : LWS? USER_AGENT LWS? COLON LWS? agentvalue comment? EOL+;
+startgroupline : LWS? USER_AGENT LWS? COLON? LWS? agentvalue comment? EOL+;
 
 groupmemberline : LWS? (pathmemberfield | othermemberfield) comment? EOL+;
 
@@ -26,10 +26,10 @@ nongroupline : LWS? (urlnongroupfield | othernongroupfield) comment? EOL+;
 
 commentline : comment EOL+;
 
-pathmemberfield : pathmembertype LWS? COLON LWS? pathvalue;
-othermemberfield : othermembertype LWS? COLON LWS? textvalue;
-urlnongroupfield : urlnongrouptype LWS? COLON LWS? urlvalue;
-othernongroupfield : othernongrouptype LWS? COLON LWS? textvalue;
+pathmemberfield : pathmembertype LWS? COLON? LWS? pathvalue;
+othermemberfield : othermembertype LWS? COLON? LWS? textvalue;
+urlnongroupfield : urlnongrouptype LWS? COLON? LWS? urlvalue;
+othernongroupfield : othernongrouptype LWS? COLON? LWS? textvalue;
 
 comment : LWS? COMMENT;
 agentvalue : textvalue;

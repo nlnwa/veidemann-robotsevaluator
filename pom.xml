@@ -18,7 +18,8 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <antlr.version>4.7</antlr.version>
+        <veidemann.commons.version>0.3.5</veidemann.commons.version>
+        <antlr.version>4.7.2</antlr.version>
         <antlr4test-maven-plugin.version>1.8</antlr4test-maven-plugin.version>
         <log4j.version>2.7</log4j.version>
     </properties>

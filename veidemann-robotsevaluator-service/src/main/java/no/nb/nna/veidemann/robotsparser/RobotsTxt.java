@@ -15,30 +15,57 @@
  */
 package no.nb.nna.veidemann.robotsparser;
 
+import no.nb.nna.veidemann.api.robotsevaluator.v1.IsAllowedReply;
+import no.nb.nna.veidemann.api.robotsevaluator.v1.IsAllowedReply.OtherField;
+import org.netpreserve.commons.uri.Uri;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.netpreserve.commons.uri.Uri;
 
 /**
  *
  */
 public class RobotsTxt {
-
-    final List<DirectiveGroup> directives = new ArrayList<>();
-
-    final List<NonGroupField> otherFields = new ArrayList<>();
+    public final static IsAllowedReply EMPTY_ALLOWED_REPLY = IsAllowedReply.newBuilder().setIsAllowed(true).build();
 
     final static UserAgentParser USER_AGENT_PARSER = new UserAgentParser();
 
-    public boolean isAllowed(String userAgent, Uri uri) {
+    final String sourceName;
+
+    final List<DirectiveGroup> directives = new ArrayList<>();
+
+    private final List<OtherField> otherFields = new ArrayList<>();
+
+    final List<String> sitemaps = new ArrayList<>();
+
+    final List<String> errors = new ArrayList<>();
+
+    public RobotsTxt(String sourceName) {
+        this.sourceName = sourceName;
+    }
+
+    void addOtherField(String name, String value) {
+        otherFields.add(OtherField.newBuilder().setName(name).setValue(value).build());
+    }
+
+    public IsAllowedReply isAllowed(String userAgent, Uri uri) {
         String ua = USER_AGENT_PARSER.parse(userAgent);
-        return findMatchingDirectives(ua).map(d -> d.isAllowed(uri)).orElse(true);
+
+        IsAllowedReply reply = findMatchingDirectives(ua)
+                .map(d -> IsAllowedReply.newBuilder()
+                        .setIsAllowed(d.isAllowed(uri))
+                        .setCrawlDelay(d.crawlDelay)
+                        .setCacheDelay(d.cacheDelay)
+                        .addAllOtherFields(otherFields)
+                        .addAllOtherFields(d.otherFields)
+                        .addAllSitemap(sitemaps)
+                        .build())
+                .orElse(EMPTY_ALLOWED_REPLY);
+
+        return reply;
     }
 
     Optional<DirectiveGroup> findMatchingDirectives(String parsedUserAgent) {
@@ -61,13 +88,22 @@ public class RobotsTxt {
 
         final List<String> userAgents = new ArrayList<>();
 
-        final List<Directive> directives = new ArrayList<>();
+        private final List<Directive> directives = new ArrayList<>();
 
-        final Map<String, String> otherFields = new HashMap<>();
+        private final List<OtherField> otherFields = new ArrayList<>();
 
         float crawlDelay = -1;
 
         float cacheDelay = -1;
+
+        void addDirective(Directive directive) {
+            directive.group = this;
+            directives.add(directive);
+        }
+
+        void addOtherField(String name, String value) {
+            otherFields.add(OtherField.newBuilder().setName(name).setValue(value).build());
+        }
 
         /**
          * Return the number of characters matching this directives best user agent match.
@@ -86,7 +122,7 @@ public class RobotsTxt {
         /**
          * Return the number of characters matching.
          *
-         * @param ua a User Agent from a robots.txt file
+         * @param ua              a User Agent from a robots.txt file
          * @param parsedUserAgent the User Agent to check access for
          * @return the number of characters matching, -1 for no match, 0 for wildcard match ('*')
          */
@@ -170,6 +206,8 @@ public class RobotsTxt {
 
         final Pattern pattern;
 
+        DirectiveGroup group;
+
         public Directive(DirectiveType type, String path) {
             this.type = type;
             // remove trailing wildcard
@@ -212,24 +250,32 @@ public class RobotsTxt {
 
     }
 
-    public static class NonGroupField {
-
-        private final String name;
-
-        private final String value;
-
-        public NonGroupField(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-    }
+//    public static class NonGroupField {
+//
+//        private final String name;
+//
+//        private final String value;
+//
+//        public NonGroupField(String name, String value) {
+//            this.name = name;
+//            this.value = value;
+//        }
+//
+//        public String getName() {
+//            return name;
+//        }
+//
+//        public String getValue() {
+//            return value;
+//        }
+//
+//        @Override
+//        public String toString() {
+//            final StringBuffer sb = new StringBuffer("NonGroupField{");
+//            sb.append("name='").append(name).append('\'');
+//            sb.append(", value='").append(value).append('\'');
+//            sb.append('}');
+//            return sb.toString();
+//        }
+//    }
 }

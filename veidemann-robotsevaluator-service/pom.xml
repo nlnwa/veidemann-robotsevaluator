@@ -49,14 +49,14 @@
 
         <dependency>
             <groupId>com.github.nlnwa</groupId>
-            <artifactId>veidemann-rethinkdbadapter</artifactId>
-            <version>0.3.4</version>
+            <artifactId>veidemann-commons</artifactId>
+            <version>${veidemann.commons.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.github.nlnwa</groupId>
-            <artifactId>veidemann-commons</artifactId>
-            <version>0.3.4</version>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.13.1</version>
         </dependency>
 
         <dependency>

@@ -15,11 +15,6 @@
  */
 package no.nb.nna.veidemann.robotsservice;
 
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.security.cert.CertificateException;
-import java.util.Objects;
-
 import no.nb.nna.veidemann.robotsparser.RobotsTxt;
 import no.nb.nna.veidemann.robotsparser.RobotsTxtParser;
 import okhttp3.OkHttpClient;
@@ -27,8 +22,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
-import org.cache2k.CacheEntry;
-import org.cache2k.expiry.ExpiryPolicy;
+import org.cache2k.expiry.ExpiryTimeValues;
 import org.cache2k.integration.CacheLoader;
 import org.netpreserve.commons.uri.Uri;
 import org.slf4j.Logger;
@@ -40,6 +34,10 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.security.cert.CertificateException;
+import java.util.Objects;
 
 import static no.nb.nna.veidemann.commons.VeidemannHeaderConstants.COLLECTION_ID;
 import static no.nb.nna.veidemann.commons.VeidemannHeaderConstants.EXECUTION_ID;
@@ -58,7 +56,7 @@ public class RobotsCache {
 
     private final OkHttpClient client;
 
-    private static final RobotsTxt EMPTY_ROBOTS = new RobotsTxt();
+    private static final RobotsTxt EMPTY_ROBOTS = new RobotsTxt("empty");
 
     public RobotsCache(final String proxyHost, final int proxyPort) {
         client = getUnsafeOkHttpClient()
@@ -68,22 +66,17 @@ public class RobotsCache {
         }
                 .name("robotsCache")
                 .entryCapacity(500000)
-                .expiryPolicy(new ExpiryPolicy<CacheKey, RobotsTxt>() {
-                    @Override
-                    public long calculateExpiryTime(CacheKey key, RobotsTxt value,
-                            long loadTime, CacheEntry<CacheKey, RobotsTxt> oldEntry) {
-                        if (value == null) {
-                            if (LOG.isErrorEnabled()) {
-                                LOG.error("Loader returned null");
-                            }
-                            return NO_CACHE;
+                .expiryPolicy((key, value, loadTime, oldEntry) -> {
+                    if (value == null) {
+                        if (LOG.isErrorEnabled()) {
+                            LOG.error("Loader returned null");
                         }
-                        if (LOG.isTraceEnabled()) {
-                            LOG.trace("Caching {}", key);
-                        }
-                        return loadTime + (1000L * key.ttlSeconds);
+                        return ExpiryTimeValues.NO_CACHE;
                     }
-
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("Caching {}", key);
+                    }
+                    return loadTime + (1000L * key.ttlSeconds);
                 })
                 .loader(new CacheLoader<CacheKey, RobotsTxt>() {
                     @Override
@@ -100,7 +93,7 @@ public class RobotsCache {
                         try (Response response = client.newCall(request).execute();) {
                             if (response.isSuccessful()) {
                                 LOG.debug("Found '{}'", url);
-                                return ROBOTS_TXT_PARSER.parse(response.body().charStream());
+                                return ROBOTS_TXT_PARSER.parse(response.body().charStream(), url);
                             } else {
                                 LOG.debug("No '{}' found", url);
                             }
@@ -198,7 +191,7 @@ public class RobotsCache {
     private static OkHttpClient.Builder getUnsafeOkHttpClient() {
         try {
             // Create a trust manager that does not validate certificate chains
-            final TrustManager[] trustAllCerts = new TrustManager[] {
+            final TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
                         @Override
                         public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
@@ -222,7 +215,7 @@ public class RobotsCache {
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            builder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0]);
+            builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
             builder.hostnameVerifier(new HostnameVerifier() {
                 @Override
                 public boolean verify(String hostname, SSLSession session) {

@@ -16,32 +16,50 @@
 
 package no.nb.nna.veidemann.robotsparser;
 
-import java.io.FileReader;
-import java.io.IOException;
-
-import no.nb.nna.veidemann.robotsparser.RobotsTxt;
-import no.nb.nna.veidemann.robotsparser.RobotsTxtParser;
+import org.antlr.v4.runtime.CharStreams;
 import org.junit.Test;
 import org.netpreserve.commons.uri.Uri;
 import org.netpreserve.commons.uri.UriConfigs;
 
-import static org.assertj.core.api.Assertions.*;
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
  */
 public class RobotsTxtParserTest {
+    final static String BOT1 = "Googlebot/2.1 (+http://www.google.com/bot.html)";
+    final static String BOT2 = "nlnbot/1.0 (+http://www.google.com/bot.html)";
 
     @Test
-    public void testSomeMethod() throws IOException {
+    public void checkIsAllowed() throws IOException {
         RobotsTxtParser parser = new RobotsTxtParser();
-        RobotsTxt robots = parser.parse(new FileReader("src/test/resources/examples/robotstxt/robots1.txt"));
+        RobotsTxt robots = parser.parse(CharStreams.fromFileName("src/test/resources/examples/robotstxt/robots1.txt"), "robots1.txt");
 
         Uri denied = UriConfigs.WHATWG.buildUri("http://example.com/denied");
         Uri allowed = UriConfigs.WHATWG.buildUri("http://example.com/allowed");
 
-        assertThat(robots.isAllowed("Googlebot/2.1 (+http://www.google.com/bot.html)", denied)).isFalse();
-        assertThat(robots.isAllowed("Googlebot/2.1 (+http://www.google.com/bot.html)", allowed)).isTrue();
+        assertThat(robots.isAllowed(BOT1, denied).getIsAllowed()).isFalse();
+        assertThat(robots.isAllowed(BOT1, allowed).getIsAllowed()).isTrue();
+    }
+
+    @Test
+    public void checkGrammar() throws IOException {
+        RobotsTxtParser parser = new RobotsTxtParser();
+        parser.parse(CharStreams.fromFileName("src/test/resources/examples/robotstxt/robots1.txt"), "robots1.txt");
+        parser.parse(CharStreams.fromFileName("src/test/resources/examples/robotstxt/robots2.txt"), "robots2.txt");
+        parser.parse(CharStreams.fromFileName("src/test/resources/examples/robotstxt/robots3.txt"), "robots3.txt");
+
+        RobotsTxt robots = parser.parse(CharStreams.fromFileName("src/test/resources/examples/robotstxt/robots4.txt"), "robots4.txt");
+        Uri denied = UriConfigs.WHATWG.buildUri("http://example.com/test6");
+        Uri allowed = UriConfigs.WHATWG.buildUri("http://example.com/test9");
+
+        assertThat(robots.isAllowed(BOT2, denied).getIsAllowed()).isFalse();
+        assertThat(robots.isAllowed(BOT2, denied).getCrawlDelay()).isEqualTo(7.0f);
+        assertThat(robots.isAllowed(BOT1, denied).getIsAllowed()).isTrue();
+        assertThat(robots.isAllowed(BOT1, denied).getCrawlDelay()).isEqualTo(4.0f);
+        assertThat(robots.isAllowed(BOT1, allowed).getIsAllowed()).isTrue();
     }
 
 }
