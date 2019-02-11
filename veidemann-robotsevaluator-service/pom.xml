@@ -14,6 +14,7 @@
 
         <docker.java.image>openjdk:8-jdk-alpine</docker.java.image>
         <cache2k-version>1.0.0.CR4</cache2k-version>
+        <veidemann.rethinkdbadapter.version>0.3.4</veidemann.rethinkdbadapter.version>
         <log4j.version>2.7</log4j.version>
     </properties>
 
@@ -70,6 +71,12 @@
             <artifactId>cache2k-all</artifactId>
             <version>${cache2k-version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.nlnwa</groupId>
+            <artifactId>veidemann-rethinkdbadapter</artifactId>
+            <version>${veidemann.rethinkdbadapter.version}</version>
         </dependency>
 
         <!-- Configuration framework -->
