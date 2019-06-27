@@ -34,6 +34,8 @@ public class RobotsApiServer implements AutoCloseable {
 
     private final Server server;
 
+    private final RobotsService robotsService;
+
     public RobotsApiServer(int port, String proxyHost, int proxyPort) {
         this(ServerBuilder.forPort(port), proxyHost, proxyPort);
     }
@@ -45,7 +47,8 @@ public class RobotsApiServer implements AutoCloseable {
                         ServerTracingInterceptor.ServerRequestAttribute.METHOD_TYPE)
                 .build();
 
-        server = serverBuilder.addService(tracingInterceptor.intercept(new RobotsService(proxyHost, proxyPort))).build();
+        robotsService = new RobotsService(proxyHost, proxyPort);
+        server = serverBuilder.addService(tracingInterceptor.intercept(robotsService)).build();
     }
 
     public RobotsApiServer start() {
@@ -75,6 +78,7 @@ public class RobotsApiServer implements AutoCloseable {
     public void close() {
         if (server != null) {
             server.shutdown();
+            robotsService.shutdown();
         }
         System.err.println("*** server shut down");
     }
