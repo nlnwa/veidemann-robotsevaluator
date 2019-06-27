@@ -15,10 +15,10 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
 
-        <veidemann.commons.version>0.3.5</veidemann.commons.version>
+        <veidemann.commons.version>0.3.11</veidemann.commons.version>
         <antlr.version>4.7.2</antlr.version>
         <antlr4test-maven-plugin.version>1.8</antlr4test-maven-plugin.version>
         <log4j.version>2.7</log4j.version>
@@ -81,6 +81,12 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>3.8.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <version>3.14.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
