@@ -20,6 +20,7 @@ import io.grpc.stub.StreamObserver;
 import no.nb.nna.veidemann.api.robotsevaluator.v1.IsAllowedReply;
 import no.nb.nna.veidemann.api.robotsevaluator.v1.IsAllowedRequest;
 import no.nb.nna.veidemann.api.robotsevaluator.v1.RobotsEvaluatorGrpc;
+import no.nb.nna.veidemann.robotsparser.RobotsTxt;
 import no.nb.nna.veidemann.robotsparser.RobotsTxtParser;
 import org.netpreserve.commons.uri.Uri;
 import org.netpreserve.commons.uri.UriConfigs;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 import static no.nb.nna.veidemann.robotsparser.RobotsTxt.EMPTY_ALLOWED_REPLY;
+import static no.nb.nna.veidemann.robotsservice.RobotsCache.EMPTY_ROBOTS;
 
 /**
  *
@@ -56,10 +58,14 @@ public class RobotsService extends RobotsEvaluatorGrpc.RobotsEvaluatorImplBase {
         try {
             Uri uri = UriConfigs.WHATWG.buildUri(request.getUri());
             int ttlSeconds = request.getPoliteness().getPolitenessConfig().getMinimumRobotsValidityDurationS();
+            if (ttlSeconds == 0) {
+                ttlSeconds = 300;
+            }
             IsAllowedReply reply;
 
             switch (request.getPoliteness().getPolitenessConfig().getRobotsPolicy()) {
                 case OBEY_ROBOTS:
+                case OBEY_ROBOTS_CLASSIC:
                     reply = cache.get(uri, ttlSeconds, request.getExecutionId(), request.getJobExecutionId(), request.getCollectionRef().getId())
                             .isAllowed(request.getUserAgent(), uri);
                     break;
@@ -67,8 +73,19 @@ public class RobotsService extends RobotsEvaluatorGrpc.RobotsEvaluatorImplBase {
                     reply = EMPTY_ALLOWED_REPLY;
                     break;
                 case CUSTOM_ROBOTS:
+                case CUSTOM_ROBOTS_CLASSIC:
                     reply = ROBOTS_TXT_PARSER.parse(request.getPoliteness().getPolitenessConfig().getCustomRobots(), "custom")
                             .isAllowed(request.getUserAgent(), uri);
+                    break;
+                case CUSTOM_IF_MISSING:
+                case CUSTOM_IF_MISSING_CLASSIC:
+                    RobotsTxt r = cache.get(uri, ttlSeconds, request.getExecutionId(), request.getJobExecutionId(), request.getCollectionRef().getId());
+                    if (r == EMPTY_ROBOTS) {
+                        reply = ROBOTS_TXT_PARSER.parse(request.getPoliteness().getPolitenessConfig().getCustomRobots(), "custom")
+                                .isAllowed(request.getUserAgent(), uri);
+                    } else {
+                        reply = r.isAllowed(request.getUserAgent(), uri);
+                    }
                     break;
                 default:
                     LOG.warn("Robots Policy '{}' is not implemented.", request.getPoliteness()
@@ -86,4 +103,7 @@ public class RobotsService extends RobotsEvaluatorGrpc.RobotsEvaluatorImplBase {
         }
     }
 
+    public void shutdown() {
+        cache.close();
+    }
 }

@@ -19,6 +19,7 @@ import no.nb.nna.veidemann.robotsparser.RobotsTxt;
 import no.nb.nna.veidemann.robotsparser.RobotsTxtParser;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Request.Builder;
 import okhttp3.Response;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -46,7 +47,7 @@ import static no.nb.nna.veidemann.commons.VeidemannHeaderConstants.JOB_EXECUTION
 /**
  *
  */
-public class RobotsCache {
+public class RobotsCache implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(RobotsCache.class);
 
@@ -56,15 +57,14 @@ public class RobotsCache {
 
     private final OkHttpClient client;
 
-    private static final RobotsTxt EMPTY_ROBOTS = new RobotsTxt("empty");
+    static final RobotsTxt EMPTY_ROBOTS = new RobotsTxt("empty");
 
     public RobotsCache(final String proxyHost, final int proxyPort) {
         client = getUnsafeOkHttpClient()
                 .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)))
                 .build();
         cache = new Cache2kBuilder<CacheKey, RobotsTxt>() {
-        }
-                .name("robotsCache")
+        }.name("robotsCache")
                 .entryCapacity(500000)
                 .expiryPolicy((key, value, loadTime, oldEntry) -> {
                     if (value == null) {
@@ -83,7 +83,7 @@ public class RobotsCache {
                     public RobotsTxt load(CacheKey key) throws Exception {
                         String url = key.protocol + "://" + key.getDomain() + ":" + key.getPort() + "/robots.txt";
 
-                        Request request = new Request.Builder()
+                        Request request = new Builder()
                                 .url(url)
                                 .addHeader(EXECUTION_ID, key.executionId)
                                 .addHeader(JOB_EXECUTION_ID, key.jobExecutionId)
@@ -109,6 +109,11 @@ public class RobotsCache {
 
     public RobotsTxt get(final Uri uri, final int ttlSeconds, final String executionId, final String jobExecutionId, final String collectionId) {
         return cache.get(new CacheKey(uri, ttlSeconds, executionId, jobExecutionId, collectionId));
+    }
+
+    @Override
+    public void close() {
+        cache.close();
     }
 
     public static final class CacheKey {
@@ -159,6 +164,7 @@ public class RobotsCache {
             hash = 73 * hash + Objects.hashCode(this.protocol);
             hash = 73 * hash + Objects.hashCode(this.domain);
             hash = 73 * hash + this.port;
+            hash = 73 * hash + Objects.hashCode(this.jobExecutionId);
             return hash;
         }
 
@@ -181,6 +187,9 @@ public class RobotsCache {
                 return false;
             }
             if (!Objects.equals(this.domain, other.domain)) {
+                return false;
+            }
+            if (!Objects.equals(this.jobExecutionId, other.jobExecutionId)) {
                 return false;
             }
             return true;

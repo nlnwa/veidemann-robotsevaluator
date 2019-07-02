@@ -13,8 +13,8 @@
         <docker.tag>latest</docker.tag>
 
         <docker.java.image>openjdk:8-jdk-alpine</docker.java.image>
-        <cache2k-version>1.0.0.CR4</cache2k-version>
-        <veidemann.rethinkdbadapter.version>0.3.4</veidemann.rethinkdbadapter.version>
+        <cache2k-version>1.2.2.Final</cache2k-version>
+        <veidemann.rethinkdbadapter.version>0.3.15</veidemann.rethinkdbadapter.version>
         <log4j.version>2.7</log4j.version>
     </properties>
 
@@ -57,20 +57,18 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>3.13.1</version>
+            <version>3.14.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.cache2k</groupId>
             <artifactId>cache2k-api</artifactId>
             <version>${cache2k-version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.cache2k</groupId>
-            <artifactId>cache2k-all</artifactId>
+            <artifactId>cache2k-core</artifactId>
             <version>${cache2k-version}</version>
-            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -101,119 +99,65 @@
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>1.3.0</version>
+                <configuration>
+                    <to>
+                        <image>docker.io/norsknettarkiv/${project.artifactId}</image>
+                        <tags>
+                            <tag>${docker.tag}</tag>
+                        </tags>
+                        <auth>
+                            <username>${env.DOCKER_USERNAME}</username>
+                            <password>${env.DOCKER_PASSWORD}</password>
+                        </auth>
+                    </to>
+                    <container>
+                        <ports>
+                            <port>50053</port>
+                        </ports>
+                    </container>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
-
     <profiles>
         <profile>
             <id>docker-build</id>
             <build>
                 <plugins>
-                    <!-- Create assembly with startup scripts and dependencies -->
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>appassembler-maven-plugin</artifactId>
+                        <groupId>com.google.cloud.tools</groupId>
+                        <artifactId>jib-maven-plugin</artifactId>
                         <executions>
                             <execution>
                                 <phase>package</phase>
                                 <goals>
-                                    <goal>assemble</goal>
+                                    <goal>dockerBuild</goal>
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <licenseHeaderFile>${basedir}/src/main/etc/license-header.txt</licenseHeaderFile>
-                            <programs>
-                                <program>
-                                    <mainClass>no.nb.nna.veidemann.robotsservice.Main</mainClass>
-                                    <id>${project.artifactId}</id>
-                                </program>
-                            </programs>
-                            <binFolder>bin</binFolder>
-                            <repositoryName>lib</repositoryName>
-                            <repositoryLayout>flat</repositoryLayout>
-                            <configurationDirectory>config</configurationDirectory>
-                            <endorsedDir>plugins</endorsedDir>
-                            <preAssembleDirectory>src/main/distfiles</preAssembleDirectory>
-                            <extraJvmArguments>-Dconfig.file=@BASEDIR@/config/application.conf -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap</extraJvmArguments>
-                        </configuration>
                     </plugin>
-
-                    <!-- Build Docker image -->
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>docker-build-and-push</id>
+            <build>
+                <plugins>
                     <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
+                        <groupId>com.google.cloud.tools</groupId>
+                        <artifactId>jib-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>docker-build</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <images>
-                                <image>
-                                    <name>norsknettarkiv/${project.artifactId}</name>
-                                    <alias>controller</alias>
-                                    <build>
-                                        <from>${docker.java.image}</from>
-                                        <maintainer>National Library of Norway</maintainer>
-                                        <tags>
-                                            <tag>${docker.tag}</tag>
-                                        </tags>
-                                        <ports>
-                                            <port>50051</port>
-                                        </ports>
-                                        <cmd>
-                                            <exec>
-                                                <arg>/veidemann/bin/${project.artifactId}</arg>
-                                            </exec>
-                                        </cmd>
-                                        <assembly>
-                                            <targetDir>/veidemann</targetDir>
-
-                                            <inline>
-                                                <includeBaseDirectory>true</includeBaseDirectory>
-                                                <fileSets>
-                                                    <fileSet>
-                                                        <directory>target/appassembler/bin</directory>
-                                                        <outputDirectory>bin</outputDirectory>
-                                                        <includes>
-                                                            <include>${project.artifactId}</include>
-                                                        </includes>
-                                                        <fileMode>0755</fileMode>
-                                                    </fileSet>
-                                                    <fileSet>
-                                                        <directory>target/appassembler/bin</directory>
-                                                        <outputDirectory>bin</outputDirectory>
-                                                        <excludes>
-                                                            <exclude>${project.artifactId}</exclude>
-                                                        </excludes>
-                                                        <fileMode>0644</fileMode>
-                                                    </fileSet>
-                                                    <fileSet>
-                                                        <directory>target/appassembler</directory>
-                                                        <outputDirectory>/</outputDirectory>
-                                                        <excludes>
-                                                            <exclude>bin</exclude>
-                                                        </excludes>
-                                                    </fileSet>
-                                                </fileSets>
-                                                <files>
-                                                    <file>
-                                                        <source>../LICENSE</source>
-                                                        <outputDirectory></outputDirectory>
-                                                        <fileMode>0644</fileMode>
-                                                    </file>
-                                                </files>
-                                            </inline>
-                                        </assembly>
-                                    </build>
-                                </image>
-                            </images>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
