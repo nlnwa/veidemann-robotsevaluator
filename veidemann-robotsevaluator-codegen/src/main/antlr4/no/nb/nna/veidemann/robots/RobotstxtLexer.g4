@@ -4,10 +4,6 @@ options {
     language = Java;
 }
 
-@header {
-  package no.nb.nna.veidemann.robots;
-}
-
 LWS : ((CR? LF)?(SP|HT)+) -> skip;
 COLON : ':';
 SLASH : '/';

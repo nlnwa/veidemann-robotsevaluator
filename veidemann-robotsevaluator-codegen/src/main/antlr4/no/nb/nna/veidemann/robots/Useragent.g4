@@ -36,10 +36,6 @@ options {
     language = Java;
 }
 
-@header {
-  package no.nb.nna.veidemann.robots;
-}
-
 prog
    : (product comment?) +
    ;
