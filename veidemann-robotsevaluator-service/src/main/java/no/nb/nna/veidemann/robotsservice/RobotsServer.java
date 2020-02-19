@@ -48,10 +48,16 @@ public class RobotsServer {
     /**
      * Start the service.
      * <p>
+     *
      * @return this instance
      */
     public RobotsServer start() {
-        try (RobotsApiServer apiServer = new RobotsApiServer(SETTINGS.getApiPort(), SETTINGS.getProxyHost(), SETTINGS.getProxyPort()).start();) {
+        try (RobotsCache robotsCache = new RobotsCache(SETTINGS.getProxyHost(), SETTINGS.getProxyPort());
+             RobotsApiServer apiServer = new RobotsApiServer(SETTINGS.getApiPort(), robotsCache)) {
+
+            registerShutdownHook();
+
+            apiServer.start();
 
             LOG.info("Veidemann Robots Evaluator (v. {}) started", RobotsServer.class.getPackage().getImplementationVersion());
 
@@ -68,9 +74,28 @@ public class RobotsServer {
         return this;
     }
 
+    private void registerShutdownHook() {
+        Thread mainThread = Thread.currentThread();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            // Use stderr here since the logger may have been reset by its JVM shutdown hook.
+            System.err.println("*** shutting down gRPC server since JVM is shutting down");
+
+            mainThread.interrupt();
+            try {
+                mainThread.join();
+            } catch (InterruptedException e) {
+                //
+            }
+
+            System.err.println("*** gracefully shut down");
+        }));
+    }
+
     /**
      * Get the settings object.
      * <p>
+     *
      * @return the settings
      */
     public static Settings getSettings() {
