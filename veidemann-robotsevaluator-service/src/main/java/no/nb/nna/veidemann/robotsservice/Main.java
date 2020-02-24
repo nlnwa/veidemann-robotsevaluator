@@ -33,7 +33,7 @@ public final class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // This class intentionally doesn't do anything except for instanciating a ResourceResolverServer.
+        // This class intentionally doesn't do anything except for instanciating a RobotsServer.
         // This is necessary to be able to replace the LogManager. The system property must be set before any other
         // logging is even loaded.
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");

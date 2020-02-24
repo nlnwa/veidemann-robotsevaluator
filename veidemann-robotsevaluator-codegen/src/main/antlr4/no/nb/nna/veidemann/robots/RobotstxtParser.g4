@@ -5,10 +5,6 @@ options {
     tokenVocab=RobotstxtLexer;
 }
 
-@header {
-  package no.nb.nna.veidemann.robots;
-}
-
 robotstxt : entries* EOF;
 
 entries : entry+;

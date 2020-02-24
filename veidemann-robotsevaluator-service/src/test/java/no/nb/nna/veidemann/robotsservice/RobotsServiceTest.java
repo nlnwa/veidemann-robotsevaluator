@@ -36,6 +36,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RobotsServiceTest {
+    RobotsCache robotsCache;
     RobotsApiServer service;
     RobotsServiceClient client;
     MockWebServer webServer;
@@ -68,10 +69,12 @@ public class RobotsServiceTest {
         // Ask the server for its URL. You'll need this to make HTTP requests.
         HttpUrl baseUrl = webServer.url("");
 
+        // Create robotsCache
+        robotsCache = new RobotsCache(baseUrl.host(), baseUrl.port());
 
         // Create Robots evaluator service
         InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName("Robots service");
-        service = new RobotsApiServer(serverBuilder, baseUrl.host(), baseUrl.port());
+        service = new RobotsApiServer(serverBuilder, robotsCache);
         service.start();
 
         // Create Robots evaluator client
@@ -83,7 +86,7 @@ public class RobotsServiceTest {
         // Shut down the server. Instances cannot be reused.
         client.close();
         service.close();
-        service.blockUntilShutdown();
+        robotsCache.close();
         webServer.shutdown();
     }
 

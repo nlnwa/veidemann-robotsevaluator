@@ -43,8 +43,8 @@ public class RobotsService extends RobotsEvaluatorGrpc.RobotsEvaluatorImplBase {
 
     private final RobotsTxtParser ROBOTS_TXT_PARSER = new RobotsTxtParser();
 
-    public RobotsService(String proxyHost, int proxyPort) {
-        this.cache = new RobotsCache(proxyHost, proxyPort);
+    public RobotsService(RobotsCache cache) {
+        this.cache = cache;
     }
 
     @Override
@@ -101,9 +101,5 @@ public class RobotsService extends RobotsEvaluatorGrpc.RobotsEvaluatorImplBase {
             Status status = Status.UNKNOWN.withDescription(ex.toString());
             respObserver.onError(status.asException());
         }
-    }
-
-    public void shutdown() {
-        cache.close();
     }
 }
