@@ -17,8 +17,8 @@ package no.nb.nna.veidemann.robotsparser;
 
 import no.nb.nna.veidemann.api.robotsevaluator.v1.IsAllowedReply;
 import no.nb.nna.veidemann.api.robotsevaluator.v1.IsAllowedReply.OtherField;
-import org.netpreserve.commons.uri.Uri;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +51,7 @@ public class RobotsTxt {
         otherFields.add(OtherField.newBuilder().setName(name).setValue(value).build());
     }
 
-    public IsAllowedReply isAllowed(String userAgent, Uri uri) {
+    public IsAllowedReply isAllowed(String userAgent, URL uri) {
         String ua = USER_AGENT_PARSER.parse(userAgent);
 
         IsAllowedReply reply = findMatchingDirectives(ua)
@@ -145,7 +145,7 @@ public class RobotsTxt {
             return new MatchedDirectiveGroup(i, this);
         }
 
-        boolean isAllowed(Uri uri) {
+        boolean isAllowed(URL uri) {
             final String path = uri.getPath();
             Optional<MatchedDirective> match = directives.stream()
                     .map(d -> d.comparePath(path))

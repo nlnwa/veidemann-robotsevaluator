@@ -18,10 +18,9 @@ package no.nb.nna.veidemann.robotsparser;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.junit.Test;
-import org.netpreserve.commons.uri.Uri;
-import org.netpreserve.commons.uri.UriConfigs;
 
 import java.io.IOException;
+import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,8 +36,8 @@ public class RobotsTxtParserTest {
         RobotsTxtParser parser = new RobotsTxtParser();
         RobotsTxt robots = parser.parse(CharStreams.fromFileName("src/test/resources/examples/robotstxt/robots1.txt"), "robots1.txt");
 
-        Uri denied = UriConfigs.WHATWG.buildUri("http://example.com/denied");
-        Uri allowed = UriConfigs.WHATWG.buildUri("http://example.com/allowed");
+        URL denied = new URL("http://example.com/denied");
+        URL allowed = new URL("http://example.com/allowed");
 
         assertThat(robots.isAllowed(BOT1, denied).getIsAllowed()).isFalse();
         assertThat(robots.isAllowed(BOT1, allowed).getIsAllowed()).isTrue();
@@ -52,8 +51,8 @@ public class RobotsTxtParserTest {
         parser.parse(CharStreams.fromFileName("src/test/resources/examples/robotstxt/robots3.txt"), "robots3.txt");
 
         RobotsTxt robots = parser.parse(CharStreams.fromFileName("src/test/resources/examples/robotstxt/robots4.txt"), "robots4.txt");
-        Uri denied = UriConfigs.WHATWG.buildUri("http://example.com/test6");
-        Uri allowed = UriConfigs.WHATWG.buildUri("http://example.com/test9");
+        URL denied = new URL("http://example.com/test6");
+        URL allowed = new URL("http://example.com/test9");
 
         assertThat(robots.isAllowed(BOT2, denied).getIsAllowed()).isFalse();
         assertThat(robots.isAllowed(BOT2, denied).getCrawlDelay()).isEqualTo(7.0f);

@@ -15,14 +15,14 @@
         <docker.password>${env.DOCKER_PASSWORD}</docker.password>
         <docker.tag>${project.version}</docker.tag>
 
-        <log4j.version>2.13.0</log4j.version>
+        <log4j.version>2.13.3</log4j.version>
         <slf4j.version>1.7.30</slf4j.version>
 
         <cache2k-version>1.2.4.Final</cache2k-version>
         <okhttp3.version>4.4.0</okhttp3.version>
 
-        <veidemann.rethinkdbadapter.version>0.4.5</veidemann.rethinkdbadapter.version>
-        <veidemann.commons.version>0.4.1</veidemann.commons.version>
+        <veidemann.rethinkdbadapter.version>0.5.3</veidemann.rethinkdbadapter.version>
+        <veidemann.commons.version>0.4.9</veidemann.commons.version>
     </properties>
 
     <repositories>
@@ -82,7 +82,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -96,12 +96,6 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>veidemann-robotsevaluator-codegen</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.netpreserve.commons</groupId>
-            <artifactId>webarchive-commons-uri</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

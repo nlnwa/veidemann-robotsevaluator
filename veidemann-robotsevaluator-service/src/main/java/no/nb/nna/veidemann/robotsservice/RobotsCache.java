@@ -25,7 +25,6 @@ import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.expiry.ExpiryTimeValues;
 import org.cache2k.integration.CacheLoader;
-import org.netpreserve.commons.uri.Uri;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +36,11 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.net.URL;
 import java.security.cert.CertificateException;
 import java.util.Objects;
 
-import static no.nb.nna.veidemann.commons.VeidemannHeaderConstants.COLLECTION_ID;
-import static no.nb.nna.veidemann.commons.VeidemannHeaderConstants.EXECUTION_ID;
-import static no.nb.nna.veidemann.commons.VeidemannHeaderConstants.JOB_EXECUTION_ID;
+import static no.nb.nna.veidemann.commons.VeidemannHeaderConstants.*;
 
 /**
  *
@@ -107,7 +105,7 @@ public class RobotsCache implements AutoCloseable {
                 .build();
     }
 
-    public RobotsTxt get(final Uri uri, final int ttlSeconds, final String executionId, final String jobExecutionId, final String collectionId) {
+    public RobotsTxt get(final URL uri, final int ttlSeconds, final String executionId, final String jobExecutionId, final String collectionId) {
         return cache.get(new CacheKey(uri, ttlSeconds, executionId, jobExecutionId, collectionId));
     }
 
@@ -132,10 +130,10 @@ public class RobotsCache implements AutoCloseable {
 
         private final String collectionId;
 
-        public CacheKey(final Uri uri, final int ttlSeconds, final String executionId, final String jobExecutionId, final String collectionId) {
-            this.protocol = uri.getScheme();
+        public CacheKey(final URL uri, final int ttlSeconds, final String executionId, final String jobExecutionId, final String collectionId) {
+            this.protocol = uri.getProtocol();
             this.domain = uri.getHost();
-            this.port = uri.getDecodedPort();
+            this.port = uri.getPort() == -1 ? uri.getDefaultPort() : uri.getPort();
             this.ttlSeconds = ttlSeconds;
             this.executionId = executionId;
             this.jobExecutionId = jobExecutionId;
