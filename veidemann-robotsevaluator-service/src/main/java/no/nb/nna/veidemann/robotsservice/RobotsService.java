@@ -22,11 +22,10 @@ import no.nb.nna.veidemann.api.robotsevaluator.v1.IsAllowedRequest;
 import no.nb.nna.veidemann.api.robotsevaluator.v1.RobotsEvaluatorGrpc;
 import no.nb.nna.veidemann.robotsparser.RobotsTxt;
 import no.nb.nna.veidemann.robotsparser.RobotsTxtParser;
-import org.netpreserve.commons.uri.Uri;
-import org.netpreserve.commons.uri.UriConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URL;
 import java.util.Objects;
 
 import static no.nb.nna.veidemann.robotsparser.RobotsTxt.EMPTY_ALLOWED_REPLY;
@@ -56,7 +55,7 @@ public class RobotsService extends RobotsEvaluatorGrpc.RobotsEvaluatorImplBase {
         Objects.requireNonNull(request.getUserAgent());
         Objects.requireNonNull(request.getCollectionRef());
         try {
-            Uri uri = UriConfigs.WHATWG.buildUri(request.getUri());
+            URL uri = new URL(request.getUri());
             int ttlSeconds = request.getPoliteness().getPolitenessConfig().getMinimumRobotsValidityDurationS();
             if (ttlSeconds == 0) {
                 ttlSeconds = 300;

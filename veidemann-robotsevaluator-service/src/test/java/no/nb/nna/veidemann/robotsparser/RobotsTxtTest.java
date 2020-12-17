@@ -17,7 +17,9 @@
 package no.nb.nna.veidemann.robotsparser;
 
 import org.junit.Test;
-import org.netpreserve.commons.uri.UriConfigs;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,33 +44,33 @@ public class RobotsTxtTest {
     }
 
     @Test
-    public void testDirectiveGroup_isAllowed() {
+    public void testDirectiveGroup_isAllowed() throws MalformedURLException {
         RobotsTxt.DirectiveGroup directiveGroup;
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/p"));
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
-        assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/page"))).isTrue();
+        assertThat(directiveGroup.isAllowed(new URL("http://example.com/page"))).isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/folder/"));
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/folder"));
-        assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/folder/page"))).isTrue();
+        assertThat(directiveGroup.isAllowed(new URL("http://example.com/folder/page"))).isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/page"));
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/*.htm"));
-        assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/page.htm"))).isFalse();
+        assertThat(directiveGroup.isAllowed(new URL("http://example.com/page.htm"))).isFalse();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/$"));
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
-        assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/"))).isTrue();
+        assertThat(directiveGroup.isAllowed(new URL("http://example.com/"))).isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/$"));
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
-        assertThat(directiveGroup.isAllowed(UriConfigs.WHATWG.buildUri("http://example.com/page.htm"))).isFalse();
+        assertThat(directiveGroup.isAllowed(new URL("http://example.com/page.htm"))).isFalse();
     }
 
     @Test
@@ -140,11 +142,11 @@ public class RobotsTxtTest {
      * Test of isAllowed method, of class RobotsTxt.
      */
     @Test
-    public void testIsAllowed() {
+    public void testIsAllowed() throws MalformedURLException {
         RobotsTxt robots = new RobotsTxt("test");
 
         // Test that empty robots.txt allows all
-        assertThat(robots.isAllowed("googlebot-news", UriConfigs.WHATWG.buildUri("http://example.com/page")).getIsAllowed()).isTrue();
+        assertThat(robots.isAllowed("googlebot-news", new URL("http://example.com/page")).getIsAllowed()).isTrue();
 
         RobotsTxt.DirectiveGroup directiveGroup;
         directiveGroup = new RobotsTxt.DirectiveGroup();
@@ -152,7 +154,7 @@ public class RobotsTxtTest {
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/p"));
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/"));
         robots.directives.add(directiveGroup);
-        assertThat(robots.isAllowed("googlebot-news", UriConfigs.WHATWG.buildUri("http://example.com/page")).getIsAllowed()).isTrue();
+        assertThat(robots.isAllowed("googlebot-news", new URL("http://example.com/page")).getIsAllowed()).isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
         directiveGroup.userAgents.add("googlebot");
@@ -160,12 +162,12 @@ public class RobotsTxtTest {
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/folder"));
         robots.directives.add(directiveGroup);
         assertThat(robots.isAllowed("Googlebot/2.1 (+http://www.google.com/bot.html)",
-                UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed()).isTrue();
-        assertThat(robots.isAllowed("googlebot-news", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed())
+                new URL("http://example.com/folder/page")).getIsAllowed()).isTrue();
+        assertThat(robots.isAllowed("googlebot-news", new URL("http://example.com/folder/page")).getIsAllowed())
                 .isFalse();
-        assertThat(robots.isAllowed("googlebo", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed())
+        assertThat(robots.isAllowed("googlebo", new URL("http://example.com/folder/page")).getIsAllowed())
                 .isTrue();
-        assertThat(robots.isAllowed("foo", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed())
+        assertThat(robots.isAllowed("foo", new URL("http://example.com/folder/page")).getIsAllowed())
                 .isTrue();
 
         directiveGroup = new RobotsTxt.DirectiveGroup();
@@ -173,7 +175,7 @@ public class RobotsTxtTest {
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.ALLOW, "/page"));
         directiveGroup.addDirective(new RobotsTxt.Directive(RobotsTxt.DirectiveType.DISALLOW, "/*.htm"));
         robots.directives.add(directiveGroup);
-        assertThat(robots.isAllowed("foo", UriConfigs.WHATWG.buildUri("http://example.com/folder/page")).getIsAllowed())
+        assertThat(robots.isAllowed("foo", new URL("http://example.com/folder/page")).getIsAllowed())
                 .isTrue();
     }
 
