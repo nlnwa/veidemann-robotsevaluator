@@ -22,7 +22,7 @@
         <okhttp3.version>4.4.0</okhttp3.version>
 
         <veidemann.rethinkdbadapter.version>v0.8.0</veidemann.rethinkdbadapter.version>
-        <veidemann.commons.version>0.4.9</veidemann.commons.version>
+        <veidemann.commons.version>v0.6.0</veidemann.commons.version>
     </properties>
 
     <repositories>
