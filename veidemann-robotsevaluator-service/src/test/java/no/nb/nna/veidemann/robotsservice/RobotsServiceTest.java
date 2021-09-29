@@ -23,7 +23,6 @@ import no.nb.nna.veidemann.api.config.v1.ConfigRef;
 import no.nb.nna.veidemann.api.config.v1.Kind;
 import no.nb.nna.veidemann.api.config.v1.PolitenessConfig.RobotsPolicy;
 import no.nb.nna.veidemann.api.frontier.v1.QueuedUri;
-import no.nb.nna.veidemann.commons.client.RobotsServiceClient;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
