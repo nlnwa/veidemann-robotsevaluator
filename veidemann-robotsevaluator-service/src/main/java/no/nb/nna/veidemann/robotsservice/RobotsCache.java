@@ -57,13 +57,13 @@ public class RobotsCache implements AutoCloseable {
 
     static final RobotsTxt EMPTY_ROBOTS = new RobotsTxt("empty");
 
-    public RobotsCache(final String proxyHost, final int proxyPort) {
+    public RobotsCache(final String proxyHost, final int proxyPort, long capacity) {
         client = getUnsafeOkHttpClient()
                 .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)))
                 .build();
         cache = new Cache2kBuilder<CacheKey, RobotsTxt>() {
         }.name("robotsCache")
-                .entryCapacity(500000)
+                .entryCapacity(capacity)
                 .expiryPolicy((key, value, loadTime, oldEntry) -> {
                     if (value == null) {
                         if (LOG.isErrorEnabled()) {

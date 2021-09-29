@@ -69,7 +69,7 @@ public class RobotsServiceTest {
         HttpUrl baseUrl = webServer.url("");
 
         // Create robotsCache
-        robotsCache = new RobotsCache(baseUrl.host(), baseUrl.port());
+        robotsCache = new RobotsCache(baseUrl.host(), baseUrl.port(), 2000);
 
         // Create Robots evaluator service
         InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName("Robots service");
