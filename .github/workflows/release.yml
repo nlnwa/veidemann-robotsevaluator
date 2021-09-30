@@ -56,6 +56,6 @@ jobs:
 
       - name: Build and push image
         run: |
-          mvn --batch-mode compile jib:build \
+          mvn --batch-mode package jib:build \
           -Djib.to.image="${REGISTRY}/${IMAGE_NAME}:${{ steps.meta.outputs.version }}" \
           -Djib.container.labels="${{ steps.meta.outputs.labels }}"
