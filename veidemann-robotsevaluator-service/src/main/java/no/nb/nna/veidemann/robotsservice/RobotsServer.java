@@ -20,7 +20,9 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
-import no.nb.nna.veidemann.commons.opentracing.TracerFactory;
+import io.opentracing.Tracer;
+import io.opentracing.util.GlobalTracer;
+import io.jaegertracing.Configuration;
 import no.nb.nna.veidemann.robotsservice.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,8 @@ public class RobotsServer {
         config.checkValid(ConfigFactory.defaultReference());
         SETTINGS = ConfigBeanFactory.create(config, Settings.class);
 
-        TracerFactory.init("RobotsService");
+        Tracer tracer = Configuration.fromEnv().getTracer();
+        GlobalTracer.registerIfAbsent(tracer);
     }
 
     public RobotsServer() {

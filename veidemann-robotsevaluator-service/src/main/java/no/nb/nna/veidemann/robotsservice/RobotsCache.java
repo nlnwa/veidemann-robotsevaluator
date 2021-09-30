@@ -91,7 +91,7 @@ public class RobotsCache implements AutoCloseable {
                         try (Response response = client.newCall(request).execute();) {
                             if (response.isSuccessful()) {
                                 LOG.debug("Found '{}'", url);
-                                return ROBOTS_TXT_PARSER.parse(response.body().charStream(), url);
+                                return ROBOTS_TXT_PARSER.parse(Objects.requireNonNull(response.body()).charStream(), url);
                             } else {
                                 LOG.debug("No '{}' found", url);
                             }
@@ -223,12 +223,7 @@ public class RobotsCache implements AutoCloseable {
 
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
             builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
-            builder.hostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
+            builder.hostnameVerifier((hostname, session) -> true);
 
             return builder;
         } catch (Exception e) {

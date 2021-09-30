@@ -20,6 +20,7 @@ import no.nb.nna.veidemann.api.robotsevaluator.v1.IsAllowedReply.OtherField;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -54,7 +55,7 @@ public class RobotsTxt {
     public IsAllowedReply isAllowed(String userAgent, URL uri) {
         String ua = USER_AGENT_PARSER.parse(userAgent);
 
-        IsAllowedReply reply = findMatchingDirectives(ua)
+        return findMatchingDirectives(ua)
                 .map(d -> IsAllowedReply.newBuilder()
                         .setIsAllowed(d.isAllowed(uri))
                         .setCrawlDelay(d.crawlDelay)
@@ -64,18 +65,14 @@ public class RobotsTxt {
                         .addAllSitemap(sitemaps)
                         .build())
                 .orElse(EMPTY_ALLOWED_REPLY);
-
-        return reply;
     }
 
     Optional<DirectiveGroup> findMatchingDirectives(String parsedUserAgent) {
         return directives.stream()
                 .map(dg -> dg.matchUserAgent(parsedUserAgent))
-                .filter(mdg -> mdg.isPresent())
-                .map(mdg -> mdg.get())
-                .max((d1, d2) -> {
-                    return d1.matchedLength - d2.matchedLength;
-                })
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .max(Comparator.comparingInt(d -> d.matchedLength))
                 .map(mdg -> mdg.directive);
     }
 
@@ -116,7 +113,7 @@ public class RobotsTxt {
             return userAgents.stream()
                     .map(ua -> compareUA(ua, parsedUserAgent))
                     .filter(d -> d.matchedLength >= 0)
-                    .max((l1, l2) -> l1.matchedLength - l2.matchedLength);
+                    .max(Comparator.comparingInt(l -> l.matchedLength));
         }
 
         /**
@@ -150,7 +147,7 @@ public class RobotsTxt {
             Optional<MatchedDirective> match = directives.stream()
                     .map(d -> d.comparePath(path))
                     .filter(md -> md.matchedLength >= 0)
-                    .max((d1, d2) -> d1.matchedLength - d2.matchedLength);
+                    .max(Comparator.comparingInt(d -> d.matchedLength));
             if (match.isPresent()) {
                 return match.get().directive.type == DirectiveType.ALLOW;
             } else {
@@ -194,8 +191,7 @@ public class RobotsTxt {
 
     enum DirectiveType {
         ALLOW,
-        DISALLOW;
-
+        DISALLOW
     }
 
     public static class Directive {

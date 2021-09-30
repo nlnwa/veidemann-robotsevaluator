@@ -21,14 +21,7 @@ import no.nb.nna.veidemann.robots.RobotstxtParserBaseListener;
 import no.nb.nna.veidemann.robotsparser.RobotsTxt.Directive;
 import no.nb.nna.veidemann.robotsparser.RobotsTxt.DirectiveGroup;
 import no.nb.nna.veidemann.robotsparser.RobotsTxt.DirectiveType;
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.TokenSource;
-import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.slf4j.Logger;
@@ -46,7 +39,7 @@ public class RobotsTxtParser {
     public RobotsTxtParser() {
     }
 
-    public RobotsTxt parse(String robotsContent, String sourceName) throws IOException {
+    public RobotsTxt parse(String robotsContent, String sourceName) {
         return parse(CharStreams.fromString(robotsContent), sourceName);
     }
 
@@ -54,13 +47,13 @@ public class RobotsTxtParser {
         return parse(CharStreams.fromReader(robotsReader), sourceName);
     }
 
-    public RobotsTxt parse(CharStream robotsStream, String sourceName) throws IOException {
+    public RobotsTxt parse(CharStream robotsStream, String sourceName) {
         RobotsTxt robotsTxt = new RobotsTxt(sourceName);
         ErrorListener errorListener = new ErrorListener(robotsTxt);
 
-        TokenSource tokenSource = new RobotstxtLexer(robotsStream);
-        ((RobotstxtLexer) tokenSource).removeErrorListeners();
-        ((RobotstxtLexer) tokenSource).addErrorListener(errorListener);
+        RobotstxtLexer tokenSource = new RobotstxtLexer(robotsStream);
+        tokenSource.removeErrorListeners();
+        tokenSource.addErrorListener(errorListener);
         TokenStream tokens = new CommonTokenStream(tokenSource);
 
         RobotstxtParser parser = new RobotstxtParser(tokens);
@@ -77,7 +70,7 @@ public class RobotsTxtParser {
         return robotsTxt;
     }
 
-    private class ErrorListener extends BaseErrorListener {
+    private static class ErrorListener extends BaseErrorListener {
         final RobotsTxt robotsTxt;
 
         public ErrorListener(RobotsTxt robotsTxt) {
@@ -91,7 +84,7 @@ public class RobotsTxtParser {
         }
     }
 
-    private class RobotsListener extends RobotstxtParserBaseListener {
+    private static class RobotsListener extends RobotstxtParserBaseListener {
 
         DirectiveGroup currentDirective = null;
 
@@ -150,7 +143,7 @@ public class RobotsTxtParser {
                             currentDirective.addOtherField(fieldName, ctx.textvalue().getText());
                             break;
                     }
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException ignored) {
 
                 }
             }

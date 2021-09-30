@@ -17,8 +17,9 @@ package no.nb.nna.veidemann.robotsservice;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.opentracing.contrib.ServerTracingInterceptor;
 import io.opentracing.util.GlobalTracer;
+import io.opentracing.contrib.grpc.TracingServerInterceptor;
+import io.opentracing.contrib.grpc.TracingServerInterceptor.ServerRequestAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +44,10 @@ public class RobotsApiServer implements AutoCloseable {
     }
 
     public RobotsApiServer(ServerBuilder<?> serverBuilder, RobotsCache robotsCache) {
-
-        ServerTracingInterceptor tracingInterceptor = new ServerTracingInterceptor.Builder(GlobalTracer.get())
-                .withTracedAttributes(ServerTracingInterceptor.ServerRequestAttribute.CALL_ATTRIBUTES,
-                        ServerTracingInterceptor.ServerRequestAttribute.METHOD_TYPE)
+        TracingServerInterceptor tracingInterceptor = TracingServerInterceptor
+                .newBuilder()
+                .withTracer(GlobalTracer.get())
+                .withTracedAttributes(ServerRequestAttribute.CALL_ATTRIBUTES, ServerRequestAttribute.METHOD_TYPE)
                 .build();
 
         threadPool = Executors.newCachedThreadPool();

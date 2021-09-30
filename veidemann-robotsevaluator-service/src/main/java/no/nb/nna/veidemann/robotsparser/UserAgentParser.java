@@ -45,7 +45,7 @@ public class UserAgentParser {
         return listener.getBaseUserAgent();
     }
 
-    private class UserAgentListener extends UseragentBaseListener {
+    private static class UserAgentListener extends UseragentBaseListener {
 
         String baseUserAgent;
 
