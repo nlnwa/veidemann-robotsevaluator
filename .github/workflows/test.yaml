@@ -30,3 +30,7 @@ jobs:
 
       - name: Run tests
         run: mvn --batch-mode test
+
+      - name: Build Docker container image
+        run: |
+          mvn --batch-mode package jib:dockerBuild
