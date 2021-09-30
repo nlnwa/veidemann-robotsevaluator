@@ -55,7 +55,7 @@ public class RobotsServer {
      * @return this instance
      */
     public RobotsServer start() {
-        try (RobotsCache robotsCache = new RobotsCache(SETTINGS.getProxyHost(), SETTINGS.getProxyPort());
+        try (RobotsCache robotsCache = new RobotsCache(SETTINGS.getProxyHost(), SETTINGS.getProxyPort(), SETTINGS.getCacheCapacityNumEntries());
              RobotsApiServer apiServer = new RobotsApiServer(SETTINGS.getApiPort(), robotsCache)) {
 
             registerShutdownHook();

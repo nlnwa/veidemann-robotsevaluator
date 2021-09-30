@@ -28,6 +28,8 @@ public class Settings extends CommonSettings {
 
     private int proxyPort;
 
+    private long cacheCapacityNumEntries;
+
     public int getApiPort() {
         return apiPort;
     }
@@ -52,4 +54,11 @@ public class Settings extends CommonSettings {
         this.proxyPort = proxyPort;
     }
 
+    public long getCacheCapacityNumEntries() {
+        return cacheCapacityNumEntries;
+    }
+
+    public void setCacheCapacityNumEntries(long cacheCapacityNumEntries) {
+        this.cacheCapacityNumEntries = cacheCapacityNumEntries;
+    }
 }
