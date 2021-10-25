@@ -24,13 +24,11 @@ import okhttp3.Response;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.expiry.ExpiryTimeValues;
-import org.cache2k.integration.CacheLoader;
+import org.cache2k.io.CacheLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -66,41 +64,35 @@ public class RobotsCache implements AutoCloseable {
                 .entryCapacity(capacity)
                 .expiryPolicy((key, value, loadTime, oldEntry) -> {
                     if (value == null) {
-                        if (LOG.isErrorEnabled()) {
-                            LOG.error("Loader returned null");
-                        }
-                        return ExpiryTimeValues.NO_CACHE;
+                        LOG.error("Loader returned null");
+                        return ExpiryTimeValues.NOW;
                     }
                     if (LOG.isTraceEnabled()) {
                         LOG.trace("Caching {}", key);
                     }
                     return loadTime + (1000L * key.ttlSeconds);
                 })
-                .loader(new CacheLoader<CacheKey, RobotsTxt>() {
-                    @Override
-                    public RobotsTxt load(CacheKey key) throws Exception {
-                        String url = key.protocol + "://" + key.getDomain() + ":" + key.getPort() + "/robots.txt";
+                .loader(key -> {
+                    String url = key.protocol + "://" + key.getDomain() + ":" + key.getPort() + "/robots.txt";
 
-                        Request request = new Builder()
-                                .url(url)
-                                .addHeader(EXECUTION_ID, key.executionId)
-                                .addHeader(JOB_EXECUTION_ID, key.jobExecutionId)
-                                .addHeader(COLLECTION_ID, key.collectionId)
-                                .build();
+                    Request request = new Builder()
+                            .url(url)
+                            .addHeader(EXECUTION_ID, key.executionId)
+                            .addHeader(JOB_EXECUTION_ID, key.jobExecutionId)
+                            .addHeader(COLLECTION_ID, key.collectionId)
+                            .build();
 
-                        try (Response response = client.newCall(request).execute();) {
-                            if (response.isSuccessful()) {
-                                LOG.debug("Found '{}'", url);
-                                return ROBOTS_TXT_PARSER.parse(Objects.requireNonNull(response.body()).charStream(), url);
-                            } else {
-                                LOG.debug("No '{}' found", url);
-                            }
-                        } catch (Exception e) {
-                            LOG.debug("No '{}' found", url, e);
+                    try (Response response = client.newCall(request).execute();) {
+                        if (response.isSuccessful()) {
+                            LOG.debug("Found '{}'", url);
+                            return ROBOTS_TXT_PARSER.parse(Objects.requireNonNull(response.body()).charStream(), url);
+                        } else {
+                            LOG.debug("No '{}' found", url);
                         }
-                        return EMPTY_ROBOTS;
+                    } catch (Exception e) {
+                        LOG.debug("No '{}' found", url, e);
                     }
-
+                    return EMPTY_ROBOTS;
                 })
                 .build();
     }
