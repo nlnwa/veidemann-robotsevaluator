@@ -23,7 +23,6 @@ import okhttp3.Request.Builder;
 import okhttp3.Response;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
-import org.cache2k.configuration.Cache2kConfiguration;
 import org.cache2k.expiry.ExpiryTimeValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
