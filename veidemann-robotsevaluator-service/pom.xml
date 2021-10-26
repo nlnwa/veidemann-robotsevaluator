@@ -17,6 +17,7 @@
         <cache2k-version>2.2.1.Final</cache2k-version>
         <okhttp3.version>4.4.0</okhttp3.version>
         <io.opentracing.version>0.33.0</io.opentracing.version>
+        <com.github.netflix.concurrency-limits.version>0.3.7</com.github.netflix.concurrency-limits.version>
 
         <veidemann.rethinkdbadapter.version>v0.8.0</veidemann.rethinkdbadapter.version>
         <veidemann.commons.version>v0.6.0</veidemann.commons.version>
@@ -158,6 +159,18 @@
             <artifactId>mockwebserver</artifactId>
             <version>${okhttp3.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.netflix.concurrency-limits</groupId>
+            <artifactId>concurrency-limits-core</artifactId>
+            <version>${com.github.netflix.concurrency-limits.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.netflix.concurrency-limits</groupId>
+            <artifactId>concurrency-limits-grpc</artifactId>
+            <version>${com.github.netflix.concurrency-limits.version}</version>
         </dependency>
     </dependencies>
 

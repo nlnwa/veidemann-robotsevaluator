@@ -15,8 +15,14 @@
  */
 package no.nb.nna.veidemann.robotsservice;
 
+import com.netflix.concurrency.limits.grpc.server.ConcurrencyLimitServerInterceptor;
+import com.netflix.concurrency.limits.grpc.server.GrpcServerLimiterBuilder;
+import com.netflix.concurrency.limits.limit.Gradient2Limit;
+import com.netflix.concurrency.limits.limit.WindowedLimit;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptor;
+import io.grpc.ServerInterceptors;
 import io.opentracing.util.GlobalTracer;
 import io.opentracing.contrib.grpc.TracingServerInterceptor;
 import io.opentracing.contrib.grpc.TracingServerInterceptor.ServerRequestAttribute;
@@ -54,7 +60,13 @@ public class RobotsApiServer implements AutoCloseable {
         serverBuilder.executor(threadPool);
 
         RobotsService robotsService = new RobotsService(robotsCache);
-        server = serverBuilder.addService(tracingInterceptor.intercept(robotsService)).build();
+        server = serverBuilder.addService(ServerInterceptors.intercept(
+                robotsService,
+                ConcurrencyLimitServerInterceptor.newBuilder(new GrpcServerLimiterBuilder()
+                        .limit(WindowedLimit.newBuilder().build(Gradient2Limit.newBuilder().build()))
+                        .build()
+                ).build(),
+                tracingInterceptor)).build();
     }
 
     public RobotsApiServer start() {
