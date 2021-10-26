@@ -23,8 +23,8 @@ import okhttp3.Request.Builder;
 import okhttp3.Response;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
+import org.cache2k.configuration.Cache2kConfiguration;
 import org.cache2k.expiry.ExpiryTimeValues;
-import org.cache2k.io.CacheLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +59,8 @@ public class RobotsCache implements AutoCloseable {
         client = getUnsafeOkHttpClient()
                 .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)))
                 .build();
-        cache = new Cache2kBuilder<CacheKey, RobotsTxt>() {
-        }.name("robotsCache")
+        cache = Cache2kBuilder.of(CacheKey.class, RobotsTxt.class)
+                .name("robotsCache")
                 .entryCapacity(capacity)
                 .expiryPolicy((key, value, loadTime, oldEntry) -> {
                     if (value == null) {
