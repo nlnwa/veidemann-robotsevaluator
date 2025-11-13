@@ -15,7 +15,7 @@
         <slf4j.version>1.7.30</slf4j.version>
 
         <cache2k-version>2.2.1.Final</cache2k-version>
-        <okhttp3.version>4.4.0</okhttp3.version>
+        <okhttp3.version>4.9.2</okhttp3.version>
         <io.opentracing.version>0.33.0</io.opentracing.version>
 
         <veidemann.rethinkdbadapter.version>v0.8.0</veidemann.rethinkdbadapter.version>
